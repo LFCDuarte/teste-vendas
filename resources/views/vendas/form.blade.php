@@ -10,6 +10,16 @@
                 </div>
 
                 <div class="card-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <form action="{{ isset($venda) ? route('vendas.update', $venda) : route('vendas.store') }}" method="POST" id="vendaForm">
                         @csrf
                         @if(isset($venda))
@@ -60,7 +70,7 @@
                                         @foreach($venda->vendaProdutos as $vendaProduto)
                                             <div class="row mb-3 produto-row">
                                                 <div class="col-md-6">
-                                                    <select class="form-select produto-select" name="produtos[][id]" required>
+                                                    <select class="form-select produto-select" name="produtos[{{ $loop->index }}][id]" required>
                                                         <option value="">Selecione um produto</option>
                                                         @foreach($produtos as $produto)
                                                             <option value="{{ $produto->id }}" {{ $vendaProduto->produto_id == $produto->id ? 'selected' : '' }}>
@@ -70,7 +80,7 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <input type="number" class="form-control quantidade" name="produtos[][quantidade]" value="{{ $vendaProduto->quantidade }}" min="1" placeholder="Quantidade" required>
+                                                    <input type="number" class="form-control quantidade" name="produtos[{{ $loop->index }}][quantidade]" value="{{ $vendaProduto->quantidade }}" min="1" placeholder="Quantidade" required>
                                                 </div>
                                                 <div class="col-md-2">
                                                     <button type="button" class="btn btn-danger btn-sm remover-produto">
@@ -102,7 +112,7 @@
 <script type="text/template" id="produto-template">
     <div class="row mb-3 produto-row">
         <div class="col-md-6">
-            <select class="form-select produto-select" name="produtos[][id]" required>
+            <select class="form-select produto-select" name="produtos[__index__][id]" required>
                 <option value="">Selecione um produto</option>
                 @foreach($produtos as $produto)
                     <option value="{{ $produto->id }}">{{ $produto->nome }} - {{ $produto->valor_formatado }}</option>
@@ -110,7 +120,7 @@
             </select>
         </div>
         <div class="col-md-4">
-            <input type="number" class="form-control quantidade" name="produtos[][quantidade]" min="1" placeholder="Quantidade" required>
+            <input type="number" class="form-control quantidade" name="produtos[__index__][quantidade]" min="1" placeholder="Quantidade" required>
         </div>
         <div class="col-md-2">
             <button type="button" class="btn btn-danger btn-sm remover-produto">
@@ -126,10 +136,11 @@
         const container = $('#produtos-container');
         const template = $('#produto-template');
         const addButton = $('#addProduto');
+        let produtoIndex = {{ isset($venda) ? $venda->vendaProdutos->count() : 0 }};
 
         // Adicionar produto
         addButton.on('click', function() {
-            const produtoHtml = template.html();
+            const produtoHtml = template.html().replace(/__index__/g, produtoIndex++);
             container.append(produtoHtml);
         });
 
@@ -138,6 +149,13 @@
             const row = $(this).closest('.produto-row');
             if (container.find('.produto-row').length > 1) {
                 row.remove();
+                // Reindexar os campos
+                container.find('.produto-row').each(function(index) {
+                    $(this).find('[name^="produtos["]').each(function() {
+                        const name = $(this).attr('name').replace(/produtos\[\d+\]/, 'produtos[' + index + ']');
+                        $(this).attr('name', name);
+                    });
+                });
             } else {
                 alert('A venda deve ter pelo menos um produto!');
             }
@@ -147,6 +165,46 @@
         if (container.find('.produto-row').length === 0) {
             addButton.click();
         }
+
+        // Validação do formulário
+        $('#vendaForm').on('submit', function(e) {
+            const produtos = container.find('.produto-row');
+            if (produtos.length === 0) {
+                e.preventDefault();
+                alert('Adicione pelo menos um produto à venda!');
+                return false;
+            }
+
+            let valid = true;
+            let formData = [];
+            produtos.each(function(index) {
+                const produto = $(this).find('.produto-select').val();
+                const quantidade = $(this).find('.quantidade').val();
+
+                formData.push({
+                    index: index,
+                    produto: produto,
+                    quantidade: quantidade
+                });
+
+                if (!produto || !quantidade || quantidade < 1) {
+                    valid = false;
+                    return false;
+                }
+            });
+
+            console.log('Dados do formulário:', {
+                cliente_id: $('#cliente_id').val(),
+                numero_parcelas: $('#numero_parcelas').val(),
+                produtos: formData
+            });
+
+            if (!valid) {
+                e.preventDefault();
+                alert('Preencha todos os campos de produtos corretamente!');
+                return false;
+            }
+        });
     });
 </script>
 @endpush
