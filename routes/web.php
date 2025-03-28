@@ -42,4 +42,5 @@ Route::middleware('auth')->group(function () {
 
     // Rotas de Vendas
     Route::resource('vendas', VendaController::class);
+    Route::patch('parcelas/{parcela}/pagar', [VendaController::class, 'pagarParcela'])->name('vendas.pagar-parcela');
 });

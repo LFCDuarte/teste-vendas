@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\Produto;
 use App\Models\VendaProduto;
+use App\Models\Parcela;
 use App\Observers\ProdutoObserver;
 use App\Observers\VendaProdutoObserver;
+use App\Observers\ParcelaObserver;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -23,6 +25,7 @@ class EventServiceProvider extends ServiceProvider
     {
         Produto::observe(ProdutoObserver::class);
         VendaProduto::observe(VendaProdutoObserver::class);
+        Parcela::observe(ParcelaObserver::class);
     }
 
     public function shouldDiscoverEvents(): bool

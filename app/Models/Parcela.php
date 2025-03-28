@@ -50,4 +50,26 @@ class Parcela extends Model
     {
         return 'R$ ' . number_format($this->valor, 2, ',', '.');
     }
+
+    public function getStatusFormatadoAttribute()
+    {
+        $status = [
+            'pendente' => 'Pendente',
+            'paga' => 'Paga',
+            'vencida' => 'Vencida'
+        ];
+
+        return $status[$this->status] ?? $this->status;
+    }
+
+    public function getStatusColorAttribute()
+    {
+        $colors = [
+            'pendente' => 'warning',
+            'paga' => 'success',
+            'vencida' => 'danger'
+        ];
+
+        return $colors[$this->status] ?? 'primary';
+    }
 }

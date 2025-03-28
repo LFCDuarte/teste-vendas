@@ -84,4 +84,28 @@ class Venda extends Model
     {
         return 'R$ ' . number_format($this->valor_total, 2, ',', '.');
     }
+
+    public function getStatusFormatadoAttribute()
+    {
+        $status = [
+            'pendente' => 'Pendente',
+            'paga' => 'Paga',
+            'vencida' => 'Vencida',
+            'cancelada' => 'Cancelada'
+        ];
+
+        return $status[$this->status] ?? $this->status;
+    }
+
+    public function getStatusColorAttribute()
+    {
+        $colors = [
+            'pendente' => 'warning',
+            'paga' => 'success',
+            'vencida' => 'danger',
+            'cancelada' => 'secondary'
+        ];
+
+        return $colors[$this->status] ?? 'primary';
+    }
 }
