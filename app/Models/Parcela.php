@@ -33,17 +33,21 @@ class Parcela extends Model
     // Métodos
     public function verificarStatus()
     {
+        $oldStatus = $this->status;
+
         if ($this->data_pagamento) {
             $this->status = 'paga';
-        } elseif ($this->data_vencimento < now()) {
+        } elseif ($this->data_vencimento < now()->startOfDay()) {
             $this->status = 'vencida';
         } else {
             $this->status = 'pendente';
         }
-        $this->save();
 
-        // Atualiza o status da venda
-        $this->venda->verificarStatus();
+        // Se o status mudou, salva e atualiza a venda
+        if ($oldStatus !== $this->status) {
+            $this->save();
+            $this->venda->verificarStatus();
+        }
     }
 
     public function getValorFormatadoAttribute()

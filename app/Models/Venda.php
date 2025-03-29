@@ -70,13 +70,19 @@ class Venda extends Model
 
     public function verificarStatus()
     {
-        if ($this->parcelas()->where('status', 'vencida')->exists()) {
-            $this->status = 'vencida';
-        } elseif ($this->parcelas()->where('status', 'pendente')->doesntExist()) {
+        // Se todas as parcelas estão pagas
+        if ($this->parcelas()->where('status', '!=', 'paga')->doesntExist()) {
             $this->status = 'paga';
-        } else {
+        }
+        // Se existe alguma parcela vencida
+        elseif ($this->parcelas()->where('status', 'vencida')->exists()) {
+            $this->status = 'vencida';
+        }
+        // Se não está paga nem vencida, está pendente
+        else {
             $this->status = 'pendente';
         }
+
         $this->save();
     }
 
