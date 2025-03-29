@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produto;
+use App\Models\VendaProduto;
 use Illuminate\Http\Request;
 
 class ProdutoController extends Controller
@@ -89,9 +90,28 @@ class ProdutoController extends Controller
      */
     public function destroy(Produto $produto)
     {
-        $produto->delete();
+        try {
+            // Verifica se o produto está em alguma venda
+            $vendasComProduto = VendaProduto::where('produto_id', $produto->id)->exists();
 
-        return redirect()->route('produtos.index')
-            ->with('status', 'Produto excluído com sucesso!');
+            if ($vendasComProduto) {
+                return back()->with('error', 'Não é possível excluir este produto pois ele está vinculado a uma ou mais vendas. Para manter o histórico de vendas, considere desativar o produto ao invés de excluí-lo.');
+            }
+
+            $produto->delete();
+            return redirect()->route('produtos.index')->with('status', 'Produto excluído com sucesso!');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Não foi possível excluir o produto. Ele pode estar sendo usado em outras partes do sistema.');
+        }
+    }
+
+    public function toggleAtivo(Produto $produto)
+    {
+        $produto->ativo = !$produto->ativo;
+        $produto->save();
+
+        $status = $produto->ativo ? 'ativado' : 'desativado';
+        return back()->with('status', "Produto {$status} com sucesso!");
     }
 }
