@@ -12,6 +12,7 @@ class Venda extends Model
 
     protected $fillable = [
         'cliente_id',
+        'user_id',
         'valor_total',
         'numero_parcelas',
         'status',
@@ -44,6 +45,11 @@ class Venda extends Model
     public function vendaProdutos()
     {
         return $this->hasMany(VendaProduto::class);
+    }
+
+    public function vendedor()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Métodos

@@ -29,6 +29,9 @@
 
                                 <dt class="col-sm-4">Valor Total:</dt>
                                 <dd class="col-sm-8">{{ $venda->valor_total_formatado }}</dd>
+
+                                <dt class="col-sm-4">Vendedor:</dt>
+                                <dd class="col-sm-8">{{ $venda->vendedor->name }}</dd>
                             </dl>
                         </div>
                     </div>

@@ -63,6 +63,7 @@ class VendaController extends Controller
                 // Criar a venda
                 $venda = Venda::create([
                     'cliente_id' => $validated['cliente_id'],
+                    'user_id' => auth()->id(),
                     'valor_total' => 0, // Será calculado automaticamente
                     'numero_parcelas' => $validated['numero_parcelas'],
                     'data_venda' => now(),
@@ -197,6 +198,7 @@ class VendaController extends Controller
             // Atualizar dados básicos da venda
             $venda->update([
                 'cliente_id' => $validated['cliente_id'],
+                'user_id' => auth()->id(),
                 'numero_parcelas' => $validated['numero_parcelas']
             ]);
 

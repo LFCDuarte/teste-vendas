@@ -19,6 +19,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Cliente</th>
+                                    <th>Vendedor</th>
                                     <th>Data</th>
                                     <th>Valor Total</th>
                                     <th>Parcelas</th>
@@ -31,6 +32,7 @@
                                     <tr>
                                         <td>{{ $venda->id }}</td>
                                         <td>{{ $venda->cliente->nome }}</td>
+                                        <td>{{ $venda->vendedor->name }}</td>
                                         <td>{{ $venda->data_venda->format('d/m/Y') }}</td>
                                         <td>{{ $venda->valor_total_formatado }}</td>
                                         <td>{{ $venda->parcelas->count() }}x de {{ $venda->parcelas->first()?->valor_formatado }}</td>
