@@ -79,13 +79,6 @@
                     </a>
                 </div>
 
-                <div class="card-body">
-                    <div class="mb-3">
-                        <a href="{{ route('vendas.relatorio') }}" class="btn btn-success">
-                            <i class="fas fa-file-pdf"></i> Baixar Relatório Geral
-                        </a>
-                    </div>
-
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -152,7 +145,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    // Inicializa a máscara para campos de valor
+    
     $('.money').mask('R$ #.##0,00', {
         reverse: true,
         placeholder: 'R$ 0,00'
