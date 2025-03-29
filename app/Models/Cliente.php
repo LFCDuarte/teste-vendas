@@ -12,6 +12,22 @@ class Cliente extends Model
     protected $fillable = [
         'nome',
         'email',
-        'telefone'
+        'telefone',
+        'ativo'
     ];
+
+    protected $casts = [
+        'ativo' => 'boolean'
+    ];
+
+    public function vendas()
+    {
+        return $this->hasMany(Venda::class);
+    }
+
+    public function desativar()
+    {
+        $this->ativo = false;
+        $this->save();
+    }
 }

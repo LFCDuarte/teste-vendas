@@ -79,9 +79,26 @@ class ClienteController extends Controller
      */
     public function destroy(Cliente $cliente)
     {
-        $cliente->delete();
+        try {
+            // Verifica se o cliente está em alguma venda
+            if ($cliente->vendas()->exists()) {
+                return back()->with('error', 'Não é possível excluir este cliente pois ele possui vendas registradas. Para manter o histórico, considere desativar o cliente ao invés de excluí-lo.');
+            }
 
-        return redirect()->route('clientes.index')
-            ->with('status', 'Cliente excluído com sucesso!');
+            $cliente->delete();
+            return redirect()->route('clientes.index')->with('status', 'Cliente excluído com sucesso!');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Não foi possível excluir o cliente. Ele pode estar sendo usado em outras partes do sistema.');
+        }
+    }
+
+    public function toggleAtivo(Cliente $cliente)
+    {
+        $cliente->ativo = !$cliente->ativo;
+        $cliente->save();
+
+        $status = $cliente->ativo ? 'ativado' : 'desativado';
+        return back()->with('status', "Cliente {$status} com sucesso!");
     }
 }

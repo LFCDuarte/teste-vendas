@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
 
     // Rotas de Clientes
     Route::resource('clientes', ClienteController::class);
+    Route::patch('/clientes/{cliente}/toggle-ativo', [ClienteController::class, 'toggleAtivo'])->name('clientes.toggle-ativo');
 
     // Rotas de Produtos
     Route::resource('produtos', ProdutoController::class);
