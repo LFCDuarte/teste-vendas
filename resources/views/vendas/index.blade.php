@@ -80,6 +80,12 @@
                 </div>
 
                 <div class="card-body">
+                    <div class="mb-3">
+                        <a href="{{ route('vendas.relatorio') }}" class="btn btn-success">
+                            <i class="fas fa-file-pdf"></i> Baixar Relatório Geral
+                        </a>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -111,6 +117,9 @@
                                         <td>
                                             <a href="{{ route('vendas.show', $venda) }}" class="btn btn-sm btn-info" title="Detalhes">
                                                 <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ route('vendas.pdf', $venda->id) }}" class="btn btn-primary btn-sm" title="Gerar PDF">
+                                                <i class="fas fa-file-pdf"></i>
                                             </a>
                                             @if($venda->status === 'pendente')
                                                 <a href="{{ route('vendas.edit', $venda) }}" class="btn btn-sm btn-primary" title="Editar">

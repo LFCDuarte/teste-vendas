@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class VendaController extends Controller
 {
@@ -321,5 +322,26 @@ class VendaController extends Controller
         // O observer vai atualizar o status da venda automaticamente
 
         return back()->with('status', 'Parcela paga com sucesso!');
+    }
+
+    public function downloadPDF($id)
+    {
+        $venda = Venda::with(['cliente', 'vendedor', 'vendaProdutos.produto'])
+            ->findOrFail($id);
+
+        $pdf = PDF::loadView('pdf.venda', compact('venda'));
+
+        return $pdf->download('venda-' . $id . '.pdf');
+    }
+
+    public function relatorioVendas()
+    {
+        $vendas = Venda::with(['cliente', 'vendedor'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $pdf = PDF::loadView('pdf.relatorio-vendas', compact('vendas'));
+
+        return $pdf->download('relatorio-vendas.pdf');
     }
 }

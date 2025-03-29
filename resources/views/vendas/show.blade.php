@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Detalhes da Venda #{{ $venda->id }}</h5>
+                    <h3 class="card-title">Detalhes da Venda #{{ $venda->id }}</h3>
                 </div>
 
                 <div class="card-body">
@@ -114,9 +114,6 @@
                     </div>
 
                     <div class="mt-4">
-                        <a href="{{ route('vendas.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Voltar
-                        </a>
                         @if($venda->status === 'pendente')
                             <a href="{{ route('vendas.edit', $venda) }}" class="btn btn-primary">
                                 <i class="fas fa-edit me-1"></i> Editar
@@ -130,6 +127,14 @@
                             </form>
                         @endif
                     </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ route('vendas.pdf', $venda->id) }}" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i> Baixar PDF desta Venda
+                    </a>
+                    <a href="{{ route('vendas.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </a>
                 </div>
             </div>
         </div>
