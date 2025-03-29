@@ -78,7 +78,6 @@
                                             <th>Vencimento</th>
                                             <th>Valor</th>
                                             <th>Status</th>
-                                            <th>Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody>
