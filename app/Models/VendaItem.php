@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class VendaItem extends Model
 {
-    protected $table = 'venda_itens'; // ou o nome que você definiu para sua tabela
+    protected $table = 'venda_itens'; 
 
     protected $fillable = [
         'venda_id',

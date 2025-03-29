@@ -24,13 +24,13 @@ class Parcela extends Model
         'valor' => 'decimal:2'
     ];
 
-    // Relacionamentos
+    
     public function venda()
     {
         return $this->belongsTo(Venda::class);
     }
 
-    // Métodos
+    
     public function verificarStatus()
     {
         $oldStatus = $this->status;
@@ -43,7 +43,7 @@ class Parcela extends Model
             $this->status = 'pendente';
         }
 
-        // Se o status mudou, salva e atualiza a venda
+        
         if ($oldStatus !== $this->status) {
             $this->save();
             $this->venda->verificarStatus();

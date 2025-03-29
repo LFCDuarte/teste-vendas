@@ -15,7 +15,6 @@ class VerificarParcelasVencidas extends Command
     {
         $this->info('Verificando parcelas vencidas...');
 
-        // Verifica parcelas vencidas
         $parcelas = Parcela::where('status', 'pendente')
             ->where('data_vencimento', '<', now())
             ->get();
@@ -28,7 +27,6 @@ class VerificarParcelasVencidas extends Command
 
         $this->info("Verificação de parcelas concluída. {$countParcelas} parcelas atualizadas.");
 
-        // Verifica vendas com todas as parcelas pagas
         $this->info('Verificando vendas com todas as parcelas pagas...');
 
         $vendas = Venda::where('status', '!=', 'paga')

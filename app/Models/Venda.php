@@ -24,7 +24,6 @@ class Venda extends Model
         'valor_total' => 'decimal:2'
     ];
 
-    // Relacionamentos
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
@@ -62,22 +61,21 @@ class Venda extends Model
         return $this->hasMany(VendaItem::class);
     }
 
-    // Métodos
     public function atualizarValorTotal()
     {
         $this->valor_total = $this->vendaProdutos()->sum('valor_total');
         $this->save();
 
-        // Atualiza as parcelas
+        
         $this->atualizarParcelas();
     }
 
     public function atualizarParcelas()
     {
-        // Calcula o valor de cada parcela
+        
         $valorParcela = $this->valor_total / $this->numero_parcelas;
 
-        // Atualiza cada parcela
+        
         $this->parcelas->each(function ($parcela) use ($valorParcela) {
             $parcela->valor = $valorParcela;
             $parcela->save();
@@ -86,15 +84,15 @@ class Venda extends Model
 
     public function verificarStatus()
     {
-        // Se todas as parcelas estão pagas
+        
         if ($this->parcelas()->where('status', '!=', 'paga')->doesntExist()) {
             $this->status = 'paga';
         }
-        // Se existe alguma parcela vencida
+        
         elseif ($this->parcelas()->where('status', 'vencida')->exists()) {
             $this->status = 'vencida';
         }
-        // Se não está paga nem vencida, está pendente
+        
         else {
             $this->status = 'pendente';
         }

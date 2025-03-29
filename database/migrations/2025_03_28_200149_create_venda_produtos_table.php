@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('venda_id')->constrained()->onDelete('cascade');
             $table->foreignId('produto_id')->constrained();
             $table->integer('quantidade');
-            $table->decimal('valor_unitario', 10, 2); // Guarda o valor do produto no momento da venda
-            $table->decimal('valor_total', 10, 2); // quantidade * valor_unitario
+            $table->decimal('valor_unitario', 10, 2); 
+            $table->decimal('valor_total', 10, 2); 
             $table->timestamps();
         });
     }

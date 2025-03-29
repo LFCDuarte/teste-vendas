@@ -6,9 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::create('vendas', function (Blueprint $table) {
@@ -19,13 +17,10 @@ return new class extends Migration
             $table->enum('status', ['pendente', 'paga', 'vencida', 'cancelada'])->default('pendente');
             $table->date('data_venda');
             $table->timestamps();
-            $table->softDeletes(); // Para manter histórico mesmo que a venda seja "deletada"
+            $table->softDeletes(); 
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('vendas');

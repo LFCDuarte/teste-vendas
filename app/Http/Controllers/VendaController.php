@@ -16,26 +16,22 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class VendaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    
     public function index(Request $request)
     {
         $query = Venda::with(['cliente', 'parcelas', 'vendedor']);
 
-        // Filtro por cliente
         if ($request->filled('cliente')) {
             $query->whereHas('cliente', function ($q) use ($request) {
                 $q->where('nome', 'like', '%' . $request->cliente . '%');
             });
         }
 
-        // Filtro por status
+        
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Filtro por período
         if ($request->filled('data_inicio')) {
             $query->whereDate('data_venda', '>=', $request->data_inicio);
         }
@@ -43,14 +39,12 @@ class VendaController extends Controller
             $query->whereDate('data_venda', '<=', $request->data_fim);
         }
 
-        // Filtro por vendedor
         if ($request->filled('vendedor')) {
             $query->whereHas('vendedor', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->vendedor . '%');
             });
         }
 
-        // Filtro por valor
         if ($request->filled('valor_minimo')) {
             $query->where('valor_total', '>=', str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_minimo));
         }
@@ -65,9 +59,6 @@ class VendaController extends Controller
         return view('vendas.index', compact('vendas', 'clientes', 'vendedores'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $clientes = Cliente::all();
@@ -75,13 +66,10 @@ class VendaController extends Controller
         return view('vendas.create', compact('clientes', 'produtos'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         try {
-            // Log dos dados recebidos
+
             Log::info('Dados da venda recebidos:', [
                 'request_all' => $request->all(),
                 'request_produtos' => $request->input('produtos'),
@@ -102,11 +90,10 @@ class VendaController extends Controller
             DB::beginTransaction();
 
             try {
-                // Criar a venda
                 $venda = Venda::create([
                     'cliente_id' => $validated['cliente_id'],
                     'user_id' => auth()->id(),
-                    'valor_total' => 0, // Será calculado automaticamente
+                    'valor_total' => 0,
                     'numero_parcelas' => $validated['numero_parcelas'],
                     'data_venda' => now(),
                     'status' => 'pendente'
@@ -114,7 +101,6 @@ class VendaController extends Controller
 
                 Log::info('Venda criada:', ['id' => $venda->id]);
 
-                // Adicionar produtos
                 $valorTotal = 0;
                 foreach ($validated['produtos'] as $produtoData) {
                     $produto = Produto::find($produtoData['id']);
@@ -139,11 +125,11 @@ class VendaController extends Controller
                     'produtos' => $validated['produtos']
                 ]);
 
-                // Atualizar valor total da venda
+                
                 $venda->valor_total = $valorTotal;
                 $venda->save();
 
-                // Criar parcelas
+                
                 $valorParcela = $venda->valor_total / $venda->numero_parcelas;
                 for ($i = 1; $i <= $venda->numero_parcelas; $i++) {
                     Parcela::create([
@@ -192,18 +178,14 @@ class VendaController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    
     public function show(Venda $venda)
     {
         $venda->load(['cliente', 'vendaProdutos.produto', 'parcelas']);
         return view('vendas.show', compact('venda'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    
     public function edit(Venda $venda)
     {
         if ($venda->status !== 'pendente') {
@@ -217,9 +199,7 @@ class VendaController extends Controller
         return view('vendas.edit', compact('venda', 'clientes', 'produtos'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+   
     public function update(Request $request, Venda $venda)
     {
         if ($venda->status !== 'pendente') {
@@ -237,17 +217,17 @@ class VendaController extends Controller
         try {
             DB::beginTransaction();
 
-            // Atualizar dados básicos da venda
+            
             $venda->update([
                 'cliente_id' => $validated['cliente_id'],
                 'user_id' => auth()->id(),
                 'numero_parcelas' => $validated['numero_parcelas']
             ]);
 
-            // Remover produtos antigos
+            
             $venda->vendaProdutos()->delete();
 
-            // Adicionar novos produtos
+            
             $valorTotal = 0;
             foreach ($validated['produtos'] as $produtoData) {
                 $produto = Produto::find($produtoData['id']);
@@ -263,14 +243,14 @@ class VendaController extends Controller
                 ]);
             }
 
-            // Atualizar valor total da venda
+            
             $venda->valor_total = $valorTotal;
             $venda->save();
 
-            // Remover parcelas antigas
+            
             $venda->parcelas()->delete();
 
-            // Criar novas parcelas
+            
             $valorParcela = $venda->valor_total / $venda->numero_parcelas;
             for ($i = 1; $i <= $venda->numero_parcelas; $i++) {
                 Parcela::create([
@@ -293,9 +273,7 @@ class VendaController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    
     public function destroy(Venda $venda)
     {
         if ($venda->status !== 'pendente') {
@@ -319,7 +297,7 @@ class VendaController extends Controller
         $parcela->data_pagamento = now();
         $parcela->save();
 
-        // O observer vai atualizar o status da venda automaticamente
+        
 
         return back()->with('status', 'Parcela paga com sucesso!');
     }

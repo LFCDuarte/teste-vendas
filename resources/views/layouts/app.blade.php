@@ -7,13 +7,13 @@
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Scripts -->
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- jQuery -->
+    
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- jQuery Mask Plugin -->
+    <
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
-    <!-- Font Awesome -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .sidebar {
@@ -65,7 +65,7 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Right Side Of Navbar -->
+                    
                     <ul class="navbar-nav ms-auto">
                         @guest
                             <li class="nav-item">
@@ -144,7 +144,7 @@
 
     <script>
         $(document).ready(function(){
-            // Aplica a máscara em todos os campos com id 'valor'
+            
             $('#valor').mask('R$ 000.000,00', {reverse: true});
         });
     </script>

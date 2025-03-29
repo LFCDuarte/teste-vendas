@@ -26,7 +26,7 @@ class Produto extends Model
         return 'R$ ' . number_format($this->valor, 2, ',', '.');
     }
 
-    // Método para desativar o produto ao invés de excluí-lo
+    
     public function desativar()
     {
         $this->ativo = false;

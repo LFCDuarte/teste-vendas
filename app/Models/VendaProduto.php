@@ -24,7 +24,7 @@ class VendaProduto extends Model
         'valor_total' => 'decimal:2'
     ];
 
-    // Relacionamentos
+    
     public function venda()
     {
         return $this->belongsTo(Venda::class);
@@ -35,7 +35,7 @@ class VendaProduto extends Model
         return $this->belongsTo(Produto::class);
     }
 
-    // Métodos
+    
     public function calcularValorTotal()
     {
         $this->valor_total = $this->quantidade * $this->valor_unitario;

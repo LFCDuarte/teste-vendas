@@ -138,18 +138,18 @@
         const addButton = $('#addProduto');
         let produtoIndex = {{ isset($venda) ? $venda->vendaProdutos->count() : 0 }};
 
-        // Adicionar produto
+        
         addButton.on('click', function() {
             const produtoHtml = template.html().replace(/__index__/g, produtoIndex++);
             container.append(produtoHtml);
         });
 
-        // Remover produto
+        
         container.on('click', '.remover-produto', function() {
             const row = $(this).closest('.produto-row');
             if (container.find('.produto-row').length > 1) {
                 row.remove();
-                // Reindexar os campos
+                
                 container.find('.produto-row').each(function(index) {
                     $(this).find('[name^="produtos["]').each(function() {
                         const name = $(this).attr('name').replace(/produtos\[\d+\]/, 'produtos[' + index + ']');
@@ -161,12 +161,12 @@
             }
         });
 
-        // Adicionar pelo menos um produto se não houver nenhum
+        
         if (container.find('.produto-row').length === 0) {
             addButton.click();
         }
 
-        // Validação do formulário
+        
         $('#vendaForm').on('submit', function(e) {
             const produtos = container.find('.produto-row');
             if (produtos.length === 0) {

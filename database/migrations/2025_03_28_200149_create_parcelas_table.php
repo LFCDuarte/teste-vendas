@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('parcelas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('venda_id')->constrained()->onDelete('cascade');
-            $table->integer('numero'); // Número da parcela (1, 2, 3, etc)
+            $table->integer('numero'); 
             $table->decimal('valor', 10, 2);
             $table->date('data_vencimento');
             $table->date('data_pagamento')->nullable();
@@ -23,9 +23,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('parcelas');
