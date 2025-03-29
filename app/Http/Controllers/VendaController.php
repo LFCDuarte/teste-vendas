@@ -11,16 +11,57 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\User;
 
 class VendaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $vendas = Venda::with(['cliente', 'parcelas'])->latest()->get();
-        return view('vendas.index', compact('vendas'));
+        $query = Venda::with(['cliente', 'parcelas', 'vendedor']);
+
+        // Filtro por cliente
+        if ($request->filled('cliente')) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('nome', 'like', '%' . $request->cliente . '%');
+            });
+        }
+
+        // Filtro por status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filtro por período
+        if ($request->filled('data_inicio')) {
+            $query->whereDate('data_venda', '>=', $request->data_inicio);
+        }
+        if ($request->filled('data_fim')) {
+            $query->whereDate('data_venda', '<=', $request->data_fim);
+        }
+
+        // Filtro por vendedor
+        if ($request->filled('vendedor')) {
+            $query->whereHas('vendedor', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->vendedor . '%');
+            });
+        }
+
+        // Filtro por valor
+        if ($request->filled('valor_minimo')) {
+            $query->where('valor_total', '>=', str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_minimo));
+        }
+        if ($request->filled('valor_maximo')) {
+            $query->where('valor_total', '<=', str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_maximo));
+        }
+
+        $vendas = $query->latest()->get();
+        $clientes = Cliente::orderBy('nome')->get();
+        $vendedores = User::orderBy('name')->get();
+
+        return view('vendas.index', compact('vendas', 'clientes', 'vendedores'));
     }
 
     /**

@@ -4,6 +4,73 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('vendas.index') }}" method="GET" id="filtroForm">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="cliente" class="form-label">Cliente</label>
+                                <input type="text" class="form-control" id="cliente" name="cliente"
+                                       value="{{ request('cliente') }}">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="vendedor" class="form-label">Vendedor</label>
+                                <input type="text" class="form-control" id="vendedor" name="vendedor"
+                                       value="{{ request('vendedor') }}">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Todos</option>
+                                    <option value="pendente" {{ request('status') == 'pendente' ? 'selected' : '' }}>Pendente</option>
+                                    <option value="paga" {{ request('status') == 'paga' ? 'selected' : '' }}>Paga</option>
+                                    <option value="vencida" {{ request('status') == 'vencida' ? 'selected' : '' }}>Vencida</option>
+                                    <option value="cancelada" {{ request('status') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="data_inicio" class="form-label">Data Início</label>
+                                <input type="date" class="form-control" id="data_inicio" name="data_inicio"
+                                       value="{{ request('data_inicio') }}">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="data_fim" class="form-label">Data Fim</label>
+                                <input type="date" class="form-control" id="data_fim" name="data_fim"
+                                       value="{{ request('data_fim') }}">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="valor_minimo" class="form-label">Valor Mínimo</label>
+                                <input type="text" class="form-control money" id="valor_minimo" name="valor_minimo"
+                                       value="{{ request('valor_minimo') }}">
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label for="valor_maximo" class="form-label">Valor Máximo</label>
+                                <input type="text" class="form-control money" id="valor_maximo" name="valor_maximo"
+                                       value="{{ request('valor_maximo') }}">
+                            </div>
+
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-1"></i> Filtrar
+                                </button>
+                                <a href="{{ route('vendas.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-eraser me-1"></i> Limpar Filtros
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Vendas</h5>
@@ -72,4 +139,17 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Inicializa a máscara para campos de valor
+    $('.money').mask('R$ #.##0,00', {
+        reverse: true,
+        placeholder: 'R$ 0,00'
+    });
+});
+</script>
+@endpush
+
 @endsection
