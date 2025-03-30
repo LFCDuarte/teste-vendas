@@ -27,7 +27,7 @@
                         @endif
 
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="cliente_id" class="form-label">Cliente</label>
                                 <select class="form-select @error('cliente_id') is-invalid @enderror" id="cliente_id" name="cliente_id" required>
                                     <option value="">Selecione um cliente</option>
@@ -42,7 +42,22 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="forma_pagamento" class="form-label">Forma de Pagamento</label>
+                                <select class="form-select @error('forma_pagamento') is-invalid @enderror" id="forma_pagamento" name="forma_pagamento" required>
+                                    <option value="">Selecione a forma de pagamento</option>
+                                    <option value="dinheiro" {{ (old('forma_pagamento', $venda->forma_pagamento ?? '') == 'dinheiro') ? 'selected' : '' }}>Dinheiro</option>
+                                    <option value="pix" {{ (old('forma_pagamento', $venda->forma_pagamento ?? '') == 'pix') ? 'selected' : '' }}>Pix</option>
+                                    <option value="debito" {{ (old('forma_pagamento', $venda->forma_pagamento ?? '') == 'debito') ? 'selected' : '' }}>Débito</option>
+                                    <option value="credito" {{ (old('forma_pagamento', $venda->forma_pagamento ?? '') == 'credito') ? 'selected' : '' }}>Crédito</option>
+                                    <option value="boleto" {{ (old('forma_pagamento', $venda->forma_pagamento ?? '') == 'boleto') ? 'selected' : '' }}>Boleto</option>
+                                </select>
+                                @error('forma_pagamento')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-4">
                                 <label for="numero_parcelas" class="form-label">Número de Parcelas</label>
                                 <select class="form-select @error('numero_parcelas') is-invalid @enderror" id="numero_parcelas" name="numero_parcelas" required>
                                     @for($i = 1; $i <= 12; $i++)
@@ -73,9 +88,11 @@
                                                     <select class="form-select produto-select" name="produtos[{{ $loop->index }}][id]" required>
                                                         <option value="">Selecione um produto</option>
                                                         @foreach($produtos as $produto)
-                                                            <option value="{{ $produto->id }}" {{ $vendaProduto->produto_id == $produto->id ? 'selected' : '' }}>
-                                                                {{ $produto->nome }} - {{ $produto->valor_formatado }}
-                                                            </option>
+                                                            @if($produto->status === 'ativo')
+                                                                <option value="{{ $produto->id }}" data-valor="{{ $produto->valor }}" {{ $vendaProduto->produto_id == $produto->id ? 'selected' : '' }}>
+                                                                    {{ $produto->nome }} - R$ {{ number_format($produto->valor, 2, ',', '.') }}
+                                                                </option>
+                                                            @endif
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -109,26 +126,28 @@
     </div>
 </div>
 
-<script type="text/template" id="produto-template">
-    <div class="row mb-3 produto-row">
+<template id="produto-template">
+    <div class="row produto-row mb-3">
         <div class="col-md-6">
             <select class="form-select produto-select" name="produtos[__index__][id]" required>
                 <option value="">Selecione um produto</option>
                 @foreach($produtos as $produto)
-                    <option value="{{ $produto->id }}">{{ $produto->nome }} - {{ $produto->valor_formatado }}</option>
+                    @if($produto->status === 'ativo')
+                        <option value="{{ $produto->id }}" data-valor="{{ $produto->valor }}">
+                            {{ $produto->nome }} - R$ {{ number_format($produto->valor, 2, ',', '.') }}
+                        </option>
+                    @endif
                 @endforeach
             </select>
         </div>
         <div class="col-md-4">
-            <input type="number" class="form-control quantidade" name="produtos[__index__][quantidade]" min="1" placeholder="Quantidade" required>
+            <input type="number" class="form-control quantidade-input" name="produtos[__index__][quantidade]" min="1" required placeholder="Quantidade">
         </div>
         <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-sm remover-produto">
-                <i class="fas fa-trash"></i>
-            </button>
+            <button type="button" class="btn btn-danger remover-produto">Remover</button>
         </div>
     </div>
-</script>
+</template>
 
 @push('scripts')
 <script>
@@ -136,7 +155,28 @@
         const container = $('#produtos-container');
         const template = $('#produto-template');
         const addButton = $('#addProduto');
+        const formaPagamentoSelect = $('#forma_pagamento');
+        const numeroParcelasSelect = $('#numero_parcelas');
         let produtoIndex = {{ isset($venda) ? $venda->vendaProdutos->count() : 0 }};
+
+        
+        function updateParcelasField() {
+            const formaPagamento = formaPagamentoSelect.val();
+            const parcelasSemParcelamento = ['dinheiro', 'pix', 'debito'];
+            
+            if (parcelasSemParcelamento.includes(formaPagamento)) {
+                numeroParcelasSelect.val('1').prop('disabled', true);
+                numeroParcelasSelect.prop('required', true);
+            } else {
+                numeroParcelasSelect.prop('disabled', false);
+            }
+        }
+
+        
+        updateParcelasField();
+
+        
+        formaPagamentoSelect.on('change', updateParcelasField);
 
         
         addButton.on('click', function() {
@@ -168,6 +208,11 @@
 
         
         $('#vendaForm').on('submit', function(e) {
+            
+            if (numeroParcelasSelect.prop('disabled')) {
+                numeroParcelasSelect.prop('disabled', false);
+            }
+
             const produtos = container.find('.produto-row');
             if (produtos.length === 0) {
                 e.preventDefault();
@@ -195,17 +240,13 @@
 
             console.log('Dados do formulário:', {
                 cliente_id: $('#cliente_id').val(),
+                forma_pagamento: $('#forma_pagamento').val(),
                 numero_parcelas: $('#numero_parcelas').val(),
                 produtos: formData
             });
-
-            if (!valid) {
-                e.preventDefault();
-                alert('Preencha todos os campos de produtos corretamente!');
-                return false;
-            }
         });
     });
 </script>
 @endpush
+
 @endsection

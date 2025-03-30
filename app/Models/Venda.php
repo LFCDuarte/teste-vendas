@@ -16,7 +16,8 @@ class Venda extends Model
         'valor_total',
         'numero_parcelas',
         'status',
-        'data_venda'
+        'data_venda',
+        'forma_pagamento'
     ];
 
     protected $casts = [
@@ -107,25 +108,23 @@ class Venda extends Model
 
     public function getStatusFormatadoAttribute()
     {
-        $status = [
+        return match($this->status) {
             'pendente' => 'Pendente',
             'paga' => 'Paga',
             'vencida' => 'Vencida',
-            'cancelada' => 'Cancelada'
-        ];
-
-        return $status[$this->status] ?? $this->status;
+            'cancelada' => 'Cancelada',
+            default => $this->status
+        };
     }
 
     public function getStatusColorAttribute()
     {
-        $colors = [
+        return match($this->status) {
             'pendente' => 'warning',
             'paga' => 'success',
             'vencida' => 'danger',
-            'cancelada' => 'secondary'
-        ];
-
-        return $colors[$this->status] ?? 'primary';
+            'cancelada' => 'secondary',
+            default => 'primary'
+        };
     }
 }

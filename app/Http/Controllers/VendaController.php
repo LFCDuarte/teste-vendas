@@ -19,7 +19,7 @@ class VendaController extends Controller
     
     public function index(Request $request)
     {
-        $query = Venda::with(['cliente', 'parcelas', 'vendedor']);
+        $query = Venda::with(['cliente', 'vendedor', 'parcelas']);
 
         if ($request->filled('cliente')) {
             $query->whereHas('cliente', function ($q) use ($request) {
@@ -27,9 +27,18 @@ class VendaController extends Controller
             });
         }
 
-        
+        if ($request->filled('vendedor')) {
+            $query->whereHas('vendedor', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->vendedor . '%');
+            });
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        }
+
+        if ($request->filled('forma_pagamento')) {
+            $query->where('forma_pagamento', $request->forma_pagamento);
         }
 
         if ($request->filled('data_inicio')) {
@@ -39,51 +48,69 @@ class VendaController extends Controller
             $query->whereDate('data_venda', '<=', $request->data_fim);
         }
 
-        if ($request->filled('vendedor')) {
-            $query->whereHas('vendedor', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->vendedor . '%');
-            });
-        }
-
         if ($request->filled('valor_minimo')) {
-            $query->where('valor_total', '>=', str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_minimo));
+            $valorMinimo = str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_minimo);
+            $query->where('valor_total', '>=', $valorMinimo);
         }
         if ($request->filled('valor_maximo')) {
-            $query->where('valor_total', '<=', str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_maximo));
+            $valorMaximo = str_replace(['R$', '.', ','], ['', '', '.'], $request->valor_maximo);
+            $query->where('valor_total', '<=', $valorMaximo);
         }
 
-        $vendas = $query->latest()->get();
+        $vendas = $query->latest()->paginate(10);
         $clientes = Cliente::orderBy('nome')->get();
         $vendedores = User::orderBy('name')->get();
+        
 
         return view('vendas.index', compact('vendas', 'clientes', 'vendedores'));
     }
 
     public function create()
     {
-        $clientes = Cliente::all();
-        $produtos = Produto::all();
+        $clientes = Cliente::where('ativo', true)->get();
+        $produtos = Produto::where('ativo', true)->get();
+        
+        
         return view('vendas.create', compact('clientes', 'produtos'));
     }
 
     public function store(Request $request)
     {
         try {
-
             Log::info('Dados da venda recebidos:', [
                 'request_all' => $request->all(),
                 'request_produtos' => $request->input('produtos'),
                 'request_cliente_id' => $request->input('cliente_id'),
-                'request_numero_parcelas' => $request->input('numero_parcelas')
+                'request_numero_parcelas' => $request->input('numero_parcelas'),
+                'request_forma_pagamento' => $request->input('forma_pagamento')
             ]);
 
             $validated = $request->validate([
                 'cliente_id' => 'required|exists:clientes,id',
                 'produtos' => 'required|array|min:1',
-                'produtos.*.id' => 'required|exists:produtos,id',
+                'produtos.*.id' => [
+                    'required',
+                    'exists:produtos,id',
+                    function ($attribute, $value, $fail) {
+                        $produto = Produto::where('id', $value)
+                                        ->where('status', 'ativo')
+                                        ->first();
+                        
+                        if (!$produto) {
+                            $fail('O produto selecionado está inativo e não pode ser vendido.');
+                        }
+                    },
+                ],
                 'produtos.*.quantidade' => 'required|integer|min:1',
                 'numero_parcelas' => 'required|integer|min:1|max:12',
+                'forma_pagamento' => 'required|in:dinheiro,pix,debito,credito,boleto'
             ]);
+
+            
+            $parcelasSemParcelamento = ['dinheiro', 'pix', 'debito'];
+            if (in_array($validated['forma_pagamento'], $parcelasSemParcelamento)) {
+                $validated['numero_parcelas'] = 1;
+            }
 
             Log::info('Dados validados:', $validated);
 
@@ -96,7 +123,8 @@ class VendaController extends Controller
                     'valor_total' => 0,
                     'numero_parcelas' => $validated['numero_parcelas'],
                     'data_venda' => now(),
-                    'status' => 'pendente'
+                    'status' => 'pendente',
+                    'forma_pagamento' => $validated['forma_pagamento']
                 ]);
 
                 Log::info('Venda criada:', ['id' => $venda->id]);
@@ -125,11 +153,9 @@ class VendaController extends Controller
                     'produtos' => $validated['produtos']
                 ]);
 
-                
                 $venda->valor_total = $valorTotal;
                 $venda->save();
 
-                
                 $valorParcela = $venda->valor_total / $venda->numero_parcelas;
                 for ($i = 1; $i <= $venda->numero_parcelas; $i++) {
                     Parcela::create([
@@ -189,13 +215,14 @@ class VendaController extends Controller
     public function edit(Venda $venda)
     {
         if ($venda->status !== 'pendente') {
-            return back()->withErrors(['error' => 'Apenas vendas pendentes podem ser editadas.']);
+            return redirect()->route('vendas.show', $venda)
+                ->with('error', 'Apenas vendas pendentes podem ser editadas.');
         }
 
-        $clientes = Cliente::all();
-        $produtos = Produto::all();
-        $venda->load(['cliente', 'vendaProdutos.produto', 'parcelas']);
+        $clientes = Cliente::orderBy('nome')->get();
+        $produtos = Produto::where('status', 'ativo')->orderBy('nome')->get();
 
+        $venda->load(['cliente', 'vendaProdutos.produto', 'parcelas']);
         return view('vendas.edit', compact('venda', 'clientes', 'produtos'));
     }
 
@@ -209,28 +236,52 @@ class VendaController extends Controller
         $validated = $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'produtos' => 'required|array',
-            'produtos.*.id' => 'required|exists:produtos,id',
+            'produtos.*.id' => [
+                'required',
+                'exists:produtos,id',
+                function ($attribute, $value, $fail) {
+                    $produto = Produto::where('id', $value)
+                                    ->where('status', 'ativo')
+                                    ->first();
+                    
+                    if (!$produto) {
+                        $fail('O produto selecionado está inativo e não pode ser vendido.');
+                    }
+                },
+            ],
             'produtos.*.quantidade' => 'required|integer|min:1',
             'numero_parcelas' => 'required|integer|min:1|max:12',
+            'forma_pagamento' => 'required|in:dinheiro,pix,debito,credito,boleto'
         ]);
+
+        // Forçar número de parcelas para 1 em formas de pagamento específicas
+        $parcelasSemParcelamento = ['dinheiro', 'pix', 'debito'];
+        if (in_array($validated['forma_pagamento'], $parcelasSemParcelamento)) {
+            $validated['numero_parcelas'] = 1;
+        }
 
         try {
             DB::beginTransaction();
 
-            
             $venda->update([
                 'cliente_id' => $validated['cliente_id'],
                 'user_id' => auth()->id(),
-                'numero_parcelas' => $validated['numero_parcelas']
+                'numero_parcelas' => $validated['numero_parcelas'],
+                'forma_pagamento' => $validated['forma_pagamento']
             ]);
 
-            
             $venda->vendaProdutos()->delete();
 
-            
             $valorTotal = 0;
             foreach ($validated['produtos'] as $produtoData) {
-                $produto = Produto::find($produtoData['id']);
+                $produto = Produto::where('id', $produtoData['id'])
+                                ->where('status', 'ativo')
+                                ->first();
+                
+                if (!$produto) {
+                    throw new \Exception("O produto não está mais disponível para venda.");
+                }
+
                 $valorProduto = $produto->valor * $produtoData['quantidade'];
                 $valorTotal += $valorProduto;
 
@@ -243,14 +294,11 @@ class VendaController extends Controller
                 ]);
             }
 
-            
             $venda->valor_total = $valorTotal;
             $venda->save();
 
-            
             $venda->parcelas()->delete();
 
-            
             $valorParcela = $venda->valor_total / $venda->numero_parcelas;
             for ($i = 1; $i <= $venda->numero_parcelas; $i++) {
                 Parcela::create([

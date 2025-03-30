@@ -32,6 +32,27 @@
 
                                 <dt class="col-sm-4">Vendedor:</dt>
                                 <dd class="col-sm-8">{{ $venda->vendedor->name }}</dd>
+
+                                <dt class="col-sm-4">Forma de Pagamento:</dt>
+                                <dd class="col-sm-8">
+                                    @switch($venda->forma_pagamento)
+                                        @case('dinheiro')
+                                            <span class="badge bg-success">Dinheiro</span>
+                                            @break
+                                        @case('pix')
+                                            <span class="badge bg-info">Pix</span>
+                                            @break
+                                        @case('debito')
+                                            <span class="badge bg-primary">Débito</span>
+                                            @break
+                                        @case('credito')
+                                            <span class="badge bg-warning">Crédito</span>
+                                            @break
+                                        @case('boleto')
+                                            <span class="badge bg-secondary">Boleto</span>
+                                            @break
+                                    @endswitch
+                                </dd>
                             </dl>
                         </div>
                     </div>
@@ -81,6 +102,7 @@
                                             <th>Vencimento</th>
                                             <th>Valor</th>
                                             <th>Status</th>
+                                            <th>Ações</th>
                                         </tr>
                                     </thead>
                                     <tbody>

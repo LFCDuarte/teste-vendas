@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class Produto extends Model
 {
@@ -13,23 +14,35 @@ class Produto extends Model
         'nome',
         'descricao',
         'valor',
-        'ativo'
+        'status'
     ];
 
     protected $casts = [
         'valor' => 'decimal:2',
-        'ativo' => 'boolean',
+        'status' => 'string'
     ];
 
+    
+    public function scopeAtivo($query)
+    {
+        return $query->where('status', 'ativo');
+    }
+
+    
     public function getValorFormatadoAttribute()
     {
         return 'R$ ' . number_format($this->valor, 2, ',', '.');
     }
 
-    
     public function desativar()
     {
-        $this->ativo = false;
+        $this->status = 'inativo';
+        $this->save();
+    }
+
+    public function ativar()
+    {
+        $this->status = 'ativo';
         $this->save();
     }
 }

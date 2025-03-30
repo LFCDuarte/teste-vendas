@@ -22,6 +22,25 @@
         <p><strong>Cliente:</strong> {{ $venda->cliente->nome }}</p>
         <p><strong>Vendedor:</strong> {{ $venda->vendedor->name }}</p>
         <p><strong>Status:</strong> {{ $venda->status_formatado }}</p>
+        <p><strong>Forma de Pagamento:</strong> 
+            @switch($venda->forma_pagamento)
+                @case('dinheiro')
+                    Dinheiro
+                    @break
+                @case('pix')
+                    Pix
+                    @break
+                @case('debito')
+                    Débito
+                    @break
+                @case('credito')
+                    Crédito
+                    @break
+                @case('boleto')
+                    Boleto
+                    @break
+            @endswitch
+        </p>
     </div>
 
     <table>
