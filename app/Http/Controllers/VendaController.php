@@ -219,8 +219,8 @@ class VendaController extends Controller
                 ->with('error', 'Apenas vendas pendentes podem ser editadas.');
         }
 
-        $clientes = Cliente::orderBy('nome')->get();
-        $produtos = Produto::where('status', 'ativo')->orderBy('nome')->get();
+        $clientes = Cliente::where('ativo', true)->get();
+        $produtos = Produto::where('ativo', true)->get();
 
         $venda->load(['cliente', 'vendaProdutos.produto', 'parcelas']);
         return view('vendas.edit', compact('venda', 'clientes', 'produtos'));
@@ -254,7 +254,7 @@ class VendaController extends Controller
             'forma_pagamento' => 'required|in:dinheiro,pix,debito,credito,boleto'
         ]);
 
-        // Forçar número de parcelas para 1 em formas de pagamento específicas
+        
         $parcelasSemParcelamento = ['dinheiro', 'pix', 'debito'];
         if (in_array($validated['forma_pagamento'], $parcelasSemParcelamento)) {
             $validated['numero_parcelas'] = 1;
