@@ -197,7 +197,7 @@
                     });
                 });
             } else {
-                alert('A venda deve ter pelo menos um produto!');
+                alert('A venda deve ter pelo menos um produto.');
             }
         });
 
@@ -216,7 +216,7 @@
             const produtos = container.find('.produto-row');
             if (produtos.length === 0) {
                 e.preventDefault();
-                alert('Adicione pelo menos um produto à venda!');
+                alert('Adicione pelo menos um produto à venda.');
                 return false;
             }
 
